@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+*.dat
+payroll-report.txt
+payroll
+.DS_Store

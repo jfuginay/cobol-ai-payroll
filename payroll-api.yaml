@@ -1,0 +1,287 @@
+openapi: 3.0.0
+info:
+  title: COBOL Payroll Calculator API
+  description: Modern REST API wrapper for legacy COBOL payroll calculations
+  version: 1.0.0
+  contact:
+    name: Gauntlet AI COBOL Demo
+    email: demo@gauntlet.ai
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+
+paths:
+  /calculate:
+    post:
+      summary: Calculate payroll for an employee
+      description: Processes employee data through COBOL engine and returns detailed payroll calculations
+      operationId: calculatePayroll
+      tags:
+        - Payroll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeePayrollRequest'
+            examples:
+              standardEmployee:
+                summary: Standard 40-hour employee
+                value:
+                  employeeId: "12345"
+                  employeeName: "John Doe"
+                  hourlyRate: 25.00
+                  hoursWorked: 40.00
+                  state: "CA"
+                  filingStatus: "S"
+                  allowances: 2
+              overtimeEmployee:
+                summary: Employee with overtime
+                value:
+                  employeeId: "54321"
+                  employeeName: "Jane Smith"
+                  hourlyRate: 30.00
+                  hoursWorked: 45.50
+                  state: "NY"
+                  filingStatus: "M"
+                  allowances: 4
+      responses:
+        '200':
+          description: Successful payroll calculation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayrollCalculationResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: COBOL processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /batch:
+    post:
+      summary: Process multiple employees
+      description: Batch process payroll for multiple employees
+      operationId: batchCalculatePayroll
+      tags:
+        - Payroll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employees:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/EmployeePayrollRequest'
+      responses:
+        '200':
+          description: Batch processing complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PayrollCalculationResponse'
+                  summary:
+                    $ref: '#/components/schemas/BatchSummary'
+
+  /health:
+    get:
+      summary: Health check
+      description: Verify API and COBOL engine are operational
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  cobolEngine:
+                    type: string
+                    example: "GnuCOBOL 3.1.2"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  schemas:
+    EmployeePayrollRequest:
+      type: object
+      required:
+        - employeeId
+        - employeeName
+        - hourlyRate
+        - hoursWorked
+        - state
+        - filingStatus
+        - allowances
+      properties:
+        employeeId:
+          type: string
+          pattern: '^[0-9]{5}$'
+          description: 5-digit employee ID
+          example: "12345"
+        employeeName:
+          type: string
+          maxLength: 30
+          description: Employee full name
+          example: "John Doe"
+        hourlyRate:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 999.99
+          description: Hourly pay rate
+          example: 25.50
+        hoursWorked:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 999.99
+          description: Total hours worked in pay period
+          example: 45.5
+        state:
+          type: string
+          enum: ["CA", "NY", "TX", "FL", "WA"]
+          description: State code for tax calculation
+          example: "CA"
+        filingStatus:
+          type: string
+          enum: ["S", "M"]
+          description: Tax filing status (S=Single, M=Married)
+          example: "S"
+        allowances:
+          type: integer
+          minimum: 0
+          maximum: 9
+          description: Number of tax allowances
+          example: 2
+
+    PayrollCalculationResponse:
+      type: object
+      properties:
+        employee:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "12345"
+            name:
+              type: string
+              example: "John Doe"
+        payPeriod:
+          type: string
+          example: "WEEKLY"
+        earnings:
+          type: object
+          properties:
+            regularHours:
+              type: number
+              example: 40.00
+            overtimeHours:
+              type: number
+              example: 5.50
+            hourlyRate:
+              type: number
+              example: 25.50
+            regularPay:
+              type: number
+              example: 1020.00
+            overtimePay:
+              type: number
+              example: 209.63
+            grossPay:
+              type: number
+              example: 1229.63
+        deductions:
+          type: object
+          properties:
+            federalTax:
+              type: number
+              example: 147.56
+            stateTax:
+              type: number
+              example: 73.78
+            socialSecurity:
+              type: number
+              example: 76.24
+            medicare:
+              type: number
+              example: 17.83
+            totalDeductions:
+              type: number
+              example: 315.41
+        netPay:
+          type: number
+          example: 914.22
+        calculationDetails:
+          type: object
+          properties:
+            cobolVersion:
+              type: string
+              example: "GnuCOBOL 3.1.2"
+            processingTime:
+              type: string
+              example: "0.003s"
+            precisionNote:
+              type: string
+              example: "Calculated using COBOL packed decimal arithmetic for exact precision"
+
+    BatchSummary:
+      type: object
+      properties:
+        totalEmployees:
+          type: integer
+          example: 10
+        totalGrossPay:
+          type: number
+          example: 15234.50
+        totalNetPay:
+          type: number
+          example: 11426.38
+        processingTime:
+          type: string
+          example: "0.025s"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid input"
+        message:
+          type: string
+          example: "Hourly rate cannot exceed $999.99"
+        field:
+          type: string
+          example: "hourlyRate"
+        timestamp:
+          type: string
+          format: date-time
+
+tags:
+  - name: Payroll
+    description: Payroll calculation operations
+  - name: System
+    description: System health and status

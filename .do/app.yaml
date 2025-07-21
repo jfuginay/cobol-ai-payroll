@@ -1,0 +1,15 @@
+name: cobol-payroll-demo
+region: sfo
+services:
+- dockerfile_path: Dockerfile
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: YOUR_GITHUB_USERNAME/cobol-payroll-calc
+  http_port: 3000
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: cobol-api
+  routes:
+  - path: /
+  source_dir: /
