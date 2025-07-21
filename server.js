@@ -98,7 +98,8 @@ app.post('/api/v1/calculate', async (req, res) => {
                     calculationDetails: {
                         cobolVersion: 'GnuCOBOL 3.1.2',
                         processingTime: `${processingTime}s`,
-                        precisionNote: 'Calculated using COBOL packed decimal arithmetic for exact precision'
+                        precisionNote: 'Calculated using COBOL packed decimal arithmetic for exact precision',
+                        githubRepo: 'https://github.com/jfuginay/cobol-ai-payroll'
                     }
                 });
             } catch (parseError) {
